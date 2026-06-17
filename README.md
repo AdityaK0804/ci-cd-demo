@@ -102,6 +102,25 @@ Only when all validation stages pass is the pull request allowed to merge.
 * GitHub Actions
 * GitHub Branch Protection
 
+## Test Coverage
+
+The project includes automated tests for both pipeline logic and UI behavior.
+
+### Pipeline Logic Tests
+
+- All stages pass successfully
+- Lint failure blocks remaining stages
+- Test failure blocks remaining stages
+- Build failure blocks remaining stages
+
+### UI Tests
+
+- Application renders correctly
+- Successful pipeline execution is displayed correctly
+- Fail-fast behavior is displayed correctly when a stage fails
+
+Total Tests: 7
+
 ## Running Locally
 
 Clone the repository:
