@@ -1,122 +1,98 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import {
+  PIPELINE_STAGES,
+  type PipelineResult,
+  type PipelineStage,
+  type StageOutcomes,
+  runPipeline,
+} from './utils/pipeline'
 import './App.css'
 
+const defaultOutcomes: StageOutcomes = {
+  Lint: true,
+  Tests: true,
+  Build: true,
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [outcomes, setOutcomes] = useState<StageOutcomes>(defaultOutcomes)
+  const [result, setResult] = useState<PipelineResult | null>(null)
+
+  function toggleStage(stage: PipelineStage) {
+    setOutcomes((current) => ({
+      ...current,
+      [stage]: !current[stage],
+    }))
+  }
+
+  function handleRunPipeline() {
+    setResult(runPipeline(outcomes))
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+    <main className="pipeline-app">
+      <header className="pipeline-header">
+        <h1>CI Pipeline Simulator</h1>
+        <p>
+          Configure each stage outcome, then run the pipeline. Stages execute
+          sequentially and fail fast.
+        </p>
+      </header>
+
+      <section className="pipeline-controls" aria-label="Stage configuration">
+        <h2>Stage Outcomes</h2>
+        <ul className="stage-list">
+          {PIPELINE_STAGES.map((stage) => (
+            <li key={stage}>
+              <label className="stage-toggle">
+                <input
+                  type="checkbox"
+                  aria-label={`${stage} should pass`}
+                  checked={outcomes[stage]}
+                  onChange={() => toggleStage(stage)}
+                />
+                <span>{stage}</span>
+                <span className="stage-outcome">
+                  {outcomes[stage] ? 'pass' : 'fail'}
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        <button type="button" className="run-button" onClick={handleRunPipeline}>
+          Run Pipeline
         </button>
       </section>
 
-      <div className="ticks"></div>
+      {result && (
+        <section className="pipeline-results" aria-label="Pipeline results">
+          <h2>Results</h2>
+          <dl className="result-summary">
+            <div>
+              <dt>Overall status</dt>
+              <dd className={`status-${result.overallStatus}`}>
+                {result.overallStatus}
+              </dd>
+            </div>
+            <div>
+              <dt>Blocked stage</dt>
+              <dd>{result.blockedStage ?? 'none'}</dd>
+            </div>
+          </dl>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          <ol className="stage-results">
+            {result.stageResults.map(({ stage, status }) => (
+              <li key={stage} className={`stage-result status-${status}`}>
+                <span>{stage}</span>
+                <span>{status}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+    </main>
   )
 }
+
 
 export default App
